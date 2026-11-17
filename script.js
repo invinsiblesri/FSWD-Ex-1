@@ -1,18 +1,30 @@
 
-// =================================
-// MOBILE NAVIGATION
-// =================================
+// =====================================
+// 1. MOBILE NAVIGATION
+// =====================================
 
 const menuToggle = document.getElementById("menu-toggle");
 const navLinks = document.getElementById("nav-links");
 
+function closeMenu() {
+    navLinks.classList.remove("open");
+
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open navigation");
+
+    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+}
+
 menuToggle.addEventListener("click", () => {
 
-    navLinks.classList.toggle("open");
+    const isOpen = navLinks.classList.toggle("open");
 
-    const isOpen = navLinks.classList.contains("open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
 
-    menuToggle.setAttribute("aria-expanded", isOpen);
+    menuToggle.setAttribute(
+        "aria-label",
+        isOpen ? "Close navigation" : "Open navigation"
+    );
 
     menuToggle.innerHTML = isOpen
         ? '<i class="fas fa-times"></i>'
@@ -21,116 +33,143 @@ menuToggle.addEventListener("click", () => {
 });
 
 
-// Close mobile menu after clicking a link
+// Close menu when clicking a navigation link
 
 document.querySelectorAll(".nav-links a").forEach(link => {
 
-    link.addEventListener("click", () => {
-
-        navLinks.classList.remove("open");
-
-        menuToggle.setAttribute("aria-expanded", "false");
-
-        menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-
-    });
+    link.addEventListener("click", closeMenu);
 
 });
 
 
-// =================================
-// SCROLL REVEAL ANIMATION
-// =================================
+// Close menu when clicking outside
+
+document.addEventListener("click", event => {
+
+    if (
+        !navLinks.contains(event.target) &&
+        !menuToggle.contains(event.target)
+    ) {
+        closeMenu();
+    }
+
+});
+
+
+// =====================================
+// 2. SCROLL REVEAL ANIMATION
+// =====================================
 
 const revealElements = document.querySelectorAll(".reveal");
 
-const revealObserver = new IntersectionObserver((entries, observer) => {
+if ("IntersectionObserver" in window) {
 
-    entries.forEach(entry => {
+    const revealObserver = new IntersectionObserver(
+        (entries, observer) => {
 
-        if (entry.isIntersecting) {
+            entries.forEach(entry => {
 
-            entry.target.classList.add("show");
+                if (entry.isIntersecting) {
 
-            observer.unobserve(entry.target);
+                    entry.target.classList.add("show");
 
-        }
-
-    });
-
-}, {
-    threshold: 0.12
-});
-
-
-revealElements.forEach(element => {
-
-    revealObserver.observe(element);
-
-});
-
-
-// =================================
-// ACTIVE NAVIGATION HIGHLIGHT
-// =================================
-
-const sections = document.querySelectorAll("section[id]");
-
-const navigationLinks = document.querySelectorAll(".nav-links a");
-
-const sectionObserver = new IntersectionObserver((entries) => {
-
-    entries.forEach(entry => {
-
-        if (entry.isIntersecting) {
-
-            const currentId = entry.target.getAttribute("id");
-
-            navigationLinks.forEach(link => {
-
-                link.classList.remove("active");
-
-                if (link.getAttribute("href") === `#${currentId}`) {
-
-                    link.classList.add("active");
+                    observer.unobserve(entry.target);
 
                 }
 
             });
 
+        },
+        {
+            threshold: 0.10
         }
+    );
+
+    revealElements.forEach(element => {
+
+        revealObserver.observe(element);
 
     });
 
-}, {
-    rootMargin: "-30% 0px -60% 0px"
-});
+} else {
 
+    // Fallback for browsers without IntersectionObserver
 
-sections.forEach(section => {
+    revealElements.forEach(element => {
 
-    sectionObserver.observe(section);
+        element.classList.add("show");
 
-});
-
-
-// =================================
-// AUTOMATIC COPYRIGHT YEAR
-// =================================
-
-document.getElementById("year").textContent =
-    new Date().getFullYear();
-
-
-// =================================
-// BACK TO TOP ON LOGO CLICK
-// =================================
-
-document.querySelector(".logo").addEventListener("click", () => {
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
     });
+
+}
+
+
+// =====================================
+// 3. ACTIVE NAVIGATION
+// =====================================
+
+const sections = document.querySelectorAll("main section[id]");
+
+const navItems = document.querySelectorAll(".nav-links a");
+
+if ("IntersectionObserver" in window) {
+
+    const sectionObserver = new IntersectionObserver(
+        entries => {
+
+            entries.forEach(entry => {
+
+                if (entry.isIntersecting) {
+
+                    const sectionId = entry.target.id;
+
+                    navItems.forEach(link => {
+
+                        link.classList.toggle(
+                            "active",
+                            link.getAttribute("href") === `#${sectionId}`
+                        );
+
+                    });
+
+                }
+
+            });
+
+        },
+        {
+            rootMargin: "-25% 0px -65% 0px"
+        }
+    );
+
+    sections.forEach(section => {
+
+        sectionObserver.observe(section);
+
+    });
+
+}
+
+
+// =====================================
+// 4. AUTOMATIC COPYRIGHT YEAR
+// =====================================
+
+const yearElement = document.getElementById("year");
+
+yearElement.textContent = new Date().getFullYear();
+
+
+// =====================================
+// 5. CLOSE MENU ON WINDOW RESIZE
+// =====================================
+
+window.addEventListener("resize", () => {
+
+    if (window.innerWidth > 650) {
+
+        closeMenu();
+
+    }
 
 });
